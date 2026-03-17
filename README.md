@@ -71,6 +71,8 @@ The comparison report shows side-by-side pass rates, per-category winners, and a
 
 ## Architecture
 
+![TrustEval Architecture](TrustEval.png)
+
 ```
 trust-eval/
   app.py                   # Flask web app with eval wizard and report viewer
