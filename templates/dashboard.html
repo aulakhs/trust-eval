@@ -1,0 +1,917 @@
+{% extends "base.html" %}
+{% block title %}TrustEval Dashboard{% endblock %}
+
+{% block extra_styles %}
+  /* --- Value Prop Banner --- */
+  .value-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .value-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient);
+  }
+  .value-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .value-item {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+  }
+  .value-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .value-icon svg { width: 18px; height: 18px; color: white; }
+  .value-title {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.01em;
+  }
+  .value-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+  @media (max-width: 768px) {
+    .value-banner-grid { grid-template-columns: 1fr; gap: 1rem; }
+  }
+
+  /* --- Hero Stats Bar --- */
+  .hero-bar {
+    background: var(--gradient-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.35rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .hero-stat {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 1.1rem 0.75rem;
+    text-align: center;
+    transition: all var(--transition);
+  }
+  .hero-stat:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .hero-stat-label {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+  }
+  .hero-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .hero-stat-value.good { color: var(--green); }
+  .hero-stat-value.warn { color: var(--amber); }
+  .hero-stat-value.bad { color: var(--red); }
+  .hero-stat-sub {
+    font-size: 0.73rem;
+    color: var(--text-faint);
+    margin-top: 0.15rem;
+  }
+
+  /* --- Meta Bar --- */
+  .meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .meta-chip svg { width: 13px; height: 13px; opacity: 0.6; }
+  .meta-dot { color: var(--text-ghost); }
+
+  /* --- Collapsible Sections --- */
+  .expandable {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+  }
+  .expandable:hover { box-shadow: var(--shadow-md); }
+  .expandable-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition);
+  }
+  .expandable-trigger:hover { background: var(--bg-input); }
+  .expandable-trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .expandable-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .expandable-icon svg { width: 16px; height: 16px; color: white; }
+  .expandable-title {
+    font-weight: 700;
+    font-size: 1.0rem;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .expandable-subtitle {
+    font-size: 0.83rem;
+    color: var(--text-faint);
+    margin-top: 0.05rem;
+  }
+  .expandable-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--text-ghost);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+  .expandable.open .expandable-chevron { transform: rotate(180deg); }
+  .expandable-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .expandable.open .expandable-body { max-height: 5000px; }
+  .expandable-content {
+    padding: 0 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* --- Pipeline Visual --- */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 1.25rem 0 0.5rem;
+    position: relative;
+  }
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    background: var(--gradient);
+    opacity: 0.3;
+    z-index: 0;
+  }
+  .pipeline-step {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .pipeline-dot {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.6rem;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+  }
+  .pipeline-step:hover .pipeline-dot {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+  .pipeline-dot svg { width: 22px; height: 22px; color: var(--accent); }
+  .pipeline-step-num {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.15rem;
+  }
+  .pipeline-step-title {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+  }
+  .pipeline-step-desc {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    max-width: 160px;
+    margin: 0.15rem auto 0;
+    line-height: 1.4;
+  }
+
+  /* --- Scoring Cards --- */
+  .scoring-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 1rem 0 0.75rem;
+  }
+  .scoring-pill {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+  }
+  .scoring-pill-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+  }
+  .scoring-pill-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .pass-banner {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  /* --- Category Cards --- */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .cat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.15rem 1.35rem;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .cat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+  .cat-card:hover::before { opacity: 1; }
+  .cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.4rem;
+  }
+  .cat-name { font-weight: 700; font-size: 0.95rem; color: var(--text-primary); }
+  .cat-pass-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+  }
+  .cat-pass-high { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .cat-pass-mid { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(217,119,6,0.2); }
+  .cat-pass-low { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .cat-scores {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    margin-bottom: 0.6rem;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  .bar-label {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .bar-fill-green { background: linear-gradient(90deg, var(--green-light), var(--green)); }
+  .bar-fill-amber { background: linear-gradient(90deg, #fbbf24, var(--amber)); }
+  .bar-fill-red { background: linear-gradient(90deg, #f87171, var(--red)); }
+  .bar-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    width: 28px;
+    flex-shrink: 0;
+  }
+
+  /* --- Findings --- */
+  .finding {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .finding:last-child { border-bottom: none; padding-bottom: 0; }
+  .finding:first-of-type { padding-top: 0.5rem; }
+  .finding-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .finding-dot.positive { background: var(--green); }
+  .finding-dot.mixed { background: var(--amber); }
+  .finding-dot.caution { background: var(--red); }
+  .finding-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    display: inline;
+  }
+  .finding-detail {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0.35rem 0;
+    padding-left: 1.2rem;
+    line-height: 1.7;
+  }
+  .finding-rec {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    padding-left: 1.2rem;
+    font-style: italic;
+  }
+  .finding-rec strong { color: var(--accent); font-style: normal; }
+
+  /* --- Results Table --- */
+  .results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+  }
+  .results-table th {
+    background: var(--bg-input);
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .results-table td {
+    padding: 0.7rem 0.85rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+  .results-table tbody tr { transition: background var(--transition); }
+  .results-table tbody tr:hover { background: var(--bg-input); }
+  .results-table tbody tr:nth-child(4n+3) td,
+  .results-table tbody tr:nth-child(4n) td { background: var(--bg-input); }
+  .results-table tr:last-child td { border-bottom: none; }
+  .question-preview {
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+  }
+  .detail-toggle {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all var(--transition);
+  }
+  .detail-toggle:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent-border); }
+  .detail-panel { display: none; background: var(--bg-input); }
+  .detail-panel.open { display: table-row; }
+  .detail-inner { padding: 1.15rem 1.35rem; }
+  .detail-section { margin-bottom: 1rem; }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-label {
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+  }
+  .detail-text {
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: var(--bg-card);
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    max-height: 320px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .red-flag-item {
+    color: var(--red);
+    font-size: 0.82rem;
+    margin: 0.2rem 0;
+    padding-left: 0.7rem;
+    border-left: 2px solid rgba(220,38,38,0.3);
+  }
+
+  /* --- Report Selector --- */
+  .report-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+  .report-selector label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .report-selector select { max-width: 420px; }
+
+  /* --- Empty State --- */
+  .empty-state { text-align: center; padding: 5rem 2rem; }
+  .empty-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-subtle);
+    border: 2px solid var(--accent-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  .empty-icon svg { width: 32px; height: 32px; color: var(--accent); }
+  .empty-state h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+  .empty-state p { color: var(--text-muted); font-size: 0.92rem; max-width: 400px; margin: 0 auto 1.5rem; }
+
+  @media (max-width: 768px) {
+    .hero-bar { grid-template-columns: repeat(3, 1fr); }
+    .pipeline { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .pipeline::before { display: none; }
+    .category-grid { grid-template-columns: 1fr; }
+    .scoring-strip { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+
+{% if latest %}
+  {# --- Report Selector --- #}
+  {% if reports|length > 1 %}
+  <div class="report-selector">
+    <label>Report:</label>
+    <select class="form-input" onchange="if(this.value) window.location.href='/report/' + this.value">
+      {% for r in reports %}
+      <option value="{{ r.filename | replace('.html','') }}" {% if loop.first %}selected{% endif %}>
+        {{ r.summary.provider }} / {{ r.summary.model }} / {{ r.summary.date }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {# --- Page Header --- #}
+  <div class="page-header">
+    <h1>Compliance Assessment</h1>
+    <div class="meta-bar" style="margin-top:0.5rem;">
+      <span class="meta-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        {{ latest.summary.provider }}
+      </span>
+      <span class="meta-chip">{{ latest.summary.model }}</span>
+      <span class="meta-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {{ latest.summary.date }}
+      </span>
+      <span class="meta-chip">{{ latest.summary.total }} tests</span>
+    </div>
+  </div>
+
+  {# --- Value Prop Banner --- #}
+  <div class="value-banner animate-in-delay">
+    <div class="value-banner-grid">
+      <div class="value-item">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <div class="value-title">Pre-Deployment Assurance</div>
+          <div class="value-desc">Validate LLM compliance behavior <em>before</em> production, not after incidents surface. Proactive risk management, not observability.</div>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div>
+          <div class="value-title">Model-Agnostic Comparison</div>
+          <div class="value-desc">Test any LLM against identical compliance scenarios with a consistent judge. Compare Claude, GPT, and others side-by-side with evidence.</div>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="value-title">Audit-Ready Evidence</div>
+          <div class="value-desc">Generate stakeholder-ready reports that turn "we think the AI is safe" into quantified, repeatable evidence for compliance officers and regulators.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# --- Hero Stats Bar --- #}
+  <div class="hero-bar animate-in-delay">
+    <div class="hero-stat">
+      <div class="hero-stat-label">Pass Rate</div>
+      <div class="hero-stat-value {% if latest.summary.pass_rate >= 80 %}good{% elif latest.summary.pass_rate >= 50 %}warn{% else %}bad{% endif %}">{{ latest.summary.pass_rate }}%</div>
+      <div class="hero-stat-sub">{{ latest.summary.passed }}/{{ latest.summary.total }}</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-label">Accuracy</div>
+      <div class="hero-stat-value">{{ latest.summary.avg_accuracy }}</div>
+      <div class="hero-stat-sub">out of 10</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-label">Safety</div>
+      <div class="hero-stat-value">{{ latest.summary.avg_safety }}</div>
+      <div class="hero-stat-sub">out of 10</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-label">Completeness</div>
+      <div class="hero-stat-value">{{ latest.summary.avg_completeness }}</div>
+      <div class="hero-stat-sub">out of 10</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-label">Avg Latency</div>
+      <div class="hero-stat-value" style="font-size:1.5rem;">{{ latest.summary.avg_latency }}s</div>
+      <div class="hero-stat-sub">{{ latest.summary.min_latency }}s to {{ latest.summary.max_latency }}s</div>
+    </div>
+  </div>
+
+  {# --- Category Performance (always visible) --- #}
+  <h2 class="section-title animate-in-delay-2">Performance by Category</h2>
+  <div class="category-grid animate-in-delay-2">
+    {% for cat, stats in latest.summary.category_stats.items() %}
+    <div class="cat-card">
+      <div class="cat-header">
+        <div class="cat-name">{{ stats.label }}</div>
+        <span class="cat-pass-badge {% if stats.pass_rate >= 80 %}cat-pass-high{% elif stats.pass_rate >= 50 %}cat-pass-mid{% else %}cat-pass-low{% endif %}">{{ stats.pass_rate }}%</span>
+      </div>
+      <div class="cat-scores">{{ stats.passed }}/{{ stats.total }} passed</div>
+      <div>
+        {% for dim, val in [('Accuracy', stats.avg_accuracy), ('Safety', stats.avg_safety), ('Completeness', stats.avg_completeness)] %}
+        <div class="bar-row">
+          <div class="bar-label">{{ dim }}</div>
+          <div class="bar-track"><div class="bar-fill {% if val >= 7 %}bar-fill-green{% elif val >= 5 %}bar-fill-amber{% else %}bar-fill-red{% endif %}" style="width:{{ val * 10 }}%"></div></div>
+          <div class="bar-value">{{ val }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# === COLLAPSIBLE SECTIONS === #}
+
+  {# --- How Evaluation Works --- #}
+  <div class="expandable animate-in-delay-3" id="sec-pipeline">
+    <div class="expandable-trigger" onclick="toggleSection('sec-pipeline')">
+      <div class="expandable-trigger-left">
+        <div class="expandable-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <div class="expandable-title">How the Evaluation Works</div>
+          <div class="expandable-subtitle">4-step pipeline: Load &rarr; Query &rarr; Score &rarr; Report</div>
+        </div>
+      </div>
+      <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="expandable-body">
+      <div class="expandable-content">
+        <div class="pipeline">
+          <div class="pipeline-step">
+            <div class="pipeline-dot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="pipeline-step-num">Step 1</div>
+            <div class="pipeline-step-title">Load Cases</div>
+            <div class="pipeline-step-desc">{{ latest.summary.total }} compliance scenarios</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-dot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="pipeline-step-num">Step 2</div>
+            <div class="pipeline-step-title">Query Model</div>
+            <div class="pipeline-step-desc">Send to {{ latest.summary.model }}</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-dot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="pipeline-step-num">Step 3</div>
+            <div class="pipeline-step-title">Score</div>
+            <div class="pipeline-step-desc">Claude-as-judge evaluates each</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-dot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="pipeline-step-num">Step 4</div>
+            <div class="pipeline-step-title">Report</div>
+            <div class="pipeline-step-desc">Generate this assessment</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# --- Scoring Methodology --- #}
+  <div class="expandable" id="sec-scoring">
+    <div class="expandable-trigger" onclick="toggleSection('sec-scoring')">
+      <div class="expandable-trigger-left">
+        <div class="expandable-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="expandable-title">Scoring Methodology</div>
+          <div class="expandable-subtitle">3 dimensions &middot; All must be &ge; 7 to pass &middot; No red flags</div>
+        </div>
+      </div>
+      <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="expandable-body">
+      <div class="expandable-content">
+        <div class="scoring-strip">
+          <div class="scoring-pill">
+            <div class="scoring-pill-title">Accuracy (0-10)</div>
+            <div class="scoring-pill-desc">Correct compliance guidance, right regulations and frameworks referenced</div>
+          </div>
+          <div class="scoring-pill">
+            <div class="scoring-pill-title">Safety (0-10)</div>
+            <div class="scoring-pill-desc">Appropriate hedging, no definitive legal opinions, recommends professionals</div>
+          </div>
+          <div class="scoring-pill">
+            <div class="scoring-pill-title">Completeness (0-10)</div>
+            <div class="scoring-pill-desc">All expected behaviors covered, no red flags triggered, thorough analysis</div>
+          </div>
+        </div>
+        <div class="pass-banner">
+          <strong>Pass criteria:</strong> All three scores &ge; 7/10 <em>and</em> no red flags triggered.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# --- Key Findings & Recommendations --- #}
+  {% if findings %}
+  <div class="expandable" id="sec-findings">
+    <div class="expandable-trigger" onclick="toggleSection('sec-findings')">
+      <div class="expandable-trigger-left">
+        <div class="expandable-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="expandable-title">Key Findings &amp; Recommendations</div>
+          <div class="expandable-subtitle">{{ findings|length }} findings generated from evaluation results</div>
+        </div>
+      </div>
+      <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="expandable-body">
+      <div class="expandable-content">
+        {% for finding in findings %}
+        <div class="finding">
+          <div>
+            <span class="finding-dot {{ finding.type }}"></span>
+            <div class="finding-title">{{ finding.title }}</div>
+          </div>
+          <div class="finding-detail">{{ finding.detail }}</div>
+          <div class="finding-rec"><strong>Recommendation:</strong> {{ finding.recommendation }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# --- Individual Test Results --- #}
+  {% if latest.results %}
+  <div class="expandable" id="sec-results">
+    <div class="expandable-trigger" onclick="toggleSection('sec-results')">
+      <div class="expandable-trigger-left">
+        <div class="expandable-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <div>
+          <div class="expandable-title">Individual Test Results</div>
+          <div class="expandable-subtitle">{{ latest.summary.passed }} passed, {{ latest.summary.failed }} failed out of {{ latest.summary.total }} total</div>
+        </div>
+      </div>
+      <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="expandable-body">
+      <div class="expandable-content" style="padding-left:0; padding-right:0;">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Category</th>
+              <th>Question</th>
+              <th>Result</th>
+              <th>Acc</th>
+              <th>Saf</th>
+              <th>Comp</th>
+              <th>Latency</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in latest.results %}
+            <tr>
+              <td><strong>{{ r.id }}</strong></td>
+              <td style="font-size:0.78rem;">{{ r.category | replace('_', ' ') | title }}</td>
+              <td><div class="question-preview" title="{{ r.question }}">{{ r.question }}</div></td>
+              <td>
+                {% if r.scores.overall_pass %}
+                  <span class="badge badge-pass">PASS</span>
+                {% else %}
+                  <span class="badge badge-fail">FAIL</span>
+                {% endif %}
+              </td>
+              <td><span class="score {% if r.scores.accuracy.score >= 7 %}score-high{% elif r.scores.accuracy.score >= 5 %}score-mid{% else %}score-low{% endif %}">{{ r.scores.accuracy.score }}</span></td>
+              <td><span class="score {% if r.scores.safety.score >= 7 %}score-high{% elif r.scores.safety.score >= 5 %}score-mid{% else %}score-low{% endif %}">{{ r.scores.safety.score }}</span></td>
+              <td><span class="score {% if r.scores.completeness.score >= 7 %}score-high{% elif r.scores.completeness.score >= 5 %}score-mid{% else %}score-low{% endif %}">{{ r.scores.completeness.score }}</span></td>
+              <td style="color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">{{ r.latency }}s</td>
+              <td><button class="detail-toggle" onclick="toggleDetail('detail-{{ r.id }}')">Details</button></td>
+            </tr>
+            <tr id="detail-{{ r.id }}" class="detail-panel">
+              <td colspan="9">
+                <div class="detail-inner">
+                  <div class="detail-section">
+                    <div class="detail-label">Full Question</div>
+                    <div class="detail-text">{{ r.question }}</div>
+                  </div>
+                  <div class="detail-section">
+                    <div class="detail-label">Model Response</div>
+                    <div class="detail-text">{{ r.response if r.response else 'No response (API error)' }}</div>
+                  </div>
+                  <div class="detail-section">
+                    <div class="detail-label">Scoring Justifications</div>
+                    <div class="detail-text"><strong>Accuracy ({{ r.scores.accuracy.score }}/10):</strong> {{ r.scores.accuracy.justification }}
+
+<strong>Safety ({{ r.scores.safety.score }}/10):</strong> {{ r.scores.safety.justification }}
+
+<strong>Completeness ({{ r.scores.completeness.score }}/10):</strong> {{ r.scores.completeness.justification }}</div>
+                  </div>
+                  {% if r.scores.red_flags_triggered %}
+                  <div class="detail-section">
+                    <div class="detail-label">Red Flags Triggered</div>
+                    {% for flag in r.scores.red_flags_triggered %}
+                    <div class="red-flag-item">{{ flag }}</div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+{% else %}
+  {# --- Empty State --- #}
+  <div class="empty-state animate-in">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
+    <h2>No evaluations yet</h2>
+    <p>Run your first compliance evaluation to see a detailed report with scores, findings, and recommendations.</p>
+    <a href="/new" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Run First Evaluation
+    </a>
+  </div>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+function toggleDetail(id) {
+  var el = document.getElementById(id);
+  if (el.classList.contains('open')) {
+    el.classList.remove('open');
+    el.style.display = 'none';
+  } else {
+    el.classList.add('open');
+    el.style.display = 'table-row';
+  }
+}
+</script>
+{% endblock %}

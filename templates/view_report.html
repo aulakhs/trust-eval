@@ -1,0 +1,5 @@
+{% extends "dashboard.html" %}
+{% block title %}Report: {{ report.summary.provider }} {{ report.summary.model }} - TrustEval{% endblock %}
+
+{# This template reuses the dashboard layout but with a specific report's data.
+   The dashboard template already handles rendering when 'latest' is set. #}

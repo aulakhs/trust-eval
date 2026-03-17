@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustEval Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    background: #faf8f5;
+    color: #2d2d2d;
+    line-height: 1.65;
+    padding: 2.5rem 2rem;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1, h2, h3 { font-family: 'Source Serif 4', serif; color: #1a1a1a; }
+  h1 { font-size: 1.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .subtitle { color: #7a7168; font-size: 0.92rem; margin-bottom: 2rem; }
+  .section-title { font-size: 1.25rem; font-weight: 600; margin: 2.25rem 0 1rem; }
+
+  /* Nav hint */
+  .nav-hint {
+    background: linear-gradient(135deg, #fdf6f0 0%, #faf8f5 100%);
+    border: 1px solid #e5d5c8;
+    border-left: 4px solid #c4704b;
+    border-radius: 10px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 2rem;
+    font-size: 0.92rem;
+    color: #4a443d;
+    line-height: 1.7;
+  }
+  .nav-hint strong { color: #1a1a1a; }
+
+  /* Report cards */
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .report-card {
+    background: #fff;
+    border: 1px solid #e5dfd6;
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .report-card:hover {
+    border-color: #c4704b;
+    box-shadow: 0 2px 12px rgba(196, 112, 75, 0.1);
+  }
+  .report-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .report-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .report-card .provider-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 10px;
+    background: #f0ece6;
+    color: #7a7168;
+  }
+  .report-card .model-name {
+    font-size: 0.85rem;
+    color: #7a7168;
+    margin-bottom: 0.75rem;
+  }
+  .report-card .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+  }
+  .stat-mini-label {
+    font-size: 0.65rem;
+    color: #9a9088;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .stat-mini-value {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .stat-mini-value.pass { color: #3d7a45; }
+  .stat-mini-value.warn { color: #c4704b; }
+  .report-card .date {
+    font-size: 0.78rem;
+    color: #b8b0a6;
+    margin-top: 0.75rem;
+    text-align: right;
+  }
+  .view-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c4704b;
+  }
+
+  /* Comparison section */
+  .comparison-section {
+    background: #fff;
+    border: 1px solid #e5dfd6;
+    border-radius: 10px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+  }
+  .comparison-section h2 { margin-bottom: 1rem; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .compare-model {
+    background: #faf8f5;
+    border: 1px solid #e5dfd6;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .compare-model-name {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #333;
+    margin-bottom: 0.15rem;
+  }
+  .compare-model-provider { font-size: 0.78rem; color: #9a9088; margin-bottom: 0.6rem; }
+  .compare-model-rate {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  .compare-model-rate.pass { color: #3d7a45; }
+  .compare-model-rate.warn { color: #c4704b; }
+  .compare-model-rate-label { font-size: 0.72rem; color: #9a9088; }
+
+  /* Category comparison table */
+  .cat-compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e5dfd6;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cat-compare-table th {
+    background: #f5f1ec;
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #7a7168;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5dfd6;
+  }
+  .cat-compare-table td {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f0ece6;
+  }
+  .cat-compare-table tr:last-child td { border-bottom: none; }
+  .cat-compare-table tbody tr:nth-child(even) { background: #fdfbf8; }
+  .winner-badge {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #e4f0e5;
+    color: #2d6b35;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #9a9088;
+  }
+  .empty-state h3 { color: #7a7168; margin-bottom: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    color: #b8b0a6;
+    font-size: 0.78rem;
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e5dfd6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>TrustEval Dashboard</h1>
+  <p class="subtitle">Pre-Deployment Compliance Assessment for LLMs in Financial Services</p>
+
+  <div class="nav-hint">
+    <strong>This is your main page.</strong> Every time you run an evaluation, it appears here. Click any card below to open the full report with executive summary, findings, and detailed test results. {% if has_comparison %}Scroll down for the cross-model comparison.{% endif %}
+  </div>
+
+  {% if reports %}
+  <!-- Evaluation Runs -->
+  <h2 class="section-title">Evaluation Reports</h2>
+  <div class="report-grid">
+    {% for r in reports %}
+    <a href="{{ r.filename }}" class="report-card">
+      <div class="report-card-header">
+        <h3>{{ r.summary.provider }}</h3>
+        <span class="provider-badge">{{ r.summary.provider }}</span>
+      </div>
+      <div class="model-name">{{ r.summary.model }}</div>
+      <div class="stats">
+        <div>
+          <div class="stat-mini-value {% if r.summary.pass_rate >= 80 %}pass{% elif r.summary.pass_rate >= 60 %}warn{% endif %}">{{ r.summary.pass_rate }}%</div>
+          <div class="stat-mini-label">Pass Rate</div>
+        </div>
+        <div>
+          <div class="stat-mini-value">{{ r.summary.avg_accuracy }}</div>
+          <div class="stat-mini-label">Accuracy</div>
+        </div>
+        <div>
+          <div class="stat-mini-value">{{ r.summary.avg_safety }}</div>
+          <div class="stat-mini-label">Safety</div>
+        </div>
+        <div>
+          <div class="stat-mini-value">{{ r.summary.avg_completeness }}</div>
+          <div class="stat-mini-label">Completeness</div>
+        </div>
+      </div>
+      <div class="date">{{ r.summary.date }} &middot; {{ r.summary.total }} tests</div>
+      <div class="view-link">View full report &rarr;</div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if has_comparison %}
+  <!-- Cross-Model Comparison -->
+  <div class="comparison-section">
+    <h2>Cross-Model Comparison</h2>
+    <p style="font-size:0.88rem; color:#6b645c; margin-bottom:1.25rem;">
+      All evaluations used the same test cases and the same Claude-based scorer, so results are directly comparable. The model with the highest pass rate in each category is marked as the leader.
+    </p>
+
+    <div class="compare-grid">
+      {% for s in comparison.summaries %}
+      <div class="compare-model">
+        <div class="compare-model-name">{{ s.model }}</div>
+        <div class="compare-model-provider">{{ s.provider }}</div>
+        <div class="compare-model-rate {% if s.pass_rate >= 80 %}pass{% elif s.pass_rate >= 60 %}warn{% endif %}">{{ s.pass_rate }}%</div>
+        <div class="compare-model-rate-label">pass rate ({{ s.passed }}/{{ s.total }})</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3 style="font-size:1rem; margin-bottom:0.75rem;">Performance by Category</h3>
+    <table class="cat-compare-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          {% for s in comparison.summaries %}
+          <th>{{ s.provider }} {{ s.model }}</th>
+          {% endfor %}
+          <th>Leader</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat, data in comparison.category_comparison.items() %}
+        <tr>
+          <td><strong>{{ data.label }}</strong></td>
+          {% set ns = namespace(best_score=0, best_label='Tie') %}
+          {% for m in data.models %}
+            {% if m.avg_score > ns.best_score %}
+              {% set ns.best_score = m.avg_score %}
+              {% set ns.best_label = m.label %}
+            {% endif %}
+          {% endfor %}
+          {% set ns2 = namespace(tied=true, first_score=data.models[0].avg_score if data.models else 0) %}
+          {% for m in data.models %}
+            {% if m.avg_score != ns2.first_score %}
+              {% set ns2.tied = false %}
+            {% endif %}
+          {% endfor %}
+          {% for m in data.models %}
+          <td>{{ m.pass_rate }}% pass &middot; {{ m.avg_score }}/10</td>
+          {% endfor %}
+          <td>
+            {% if ns2.tied %}
+            <span style="color:#9a9088; font-size:0.82rem;">Tie</span>
+            {% else %}
+            <span class="winner-badge">{{ ns.best_label }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <h3>No evaluations yet</h3>
+    <p>Run your first evaluation to see results here:</p>
+    <p style="margin-top:0.5rem;"><code style="background:#f0ece6; padding:0.3rem 0.6rem; border-radius:4px;">python run_eval.py --provider anthropic</code></p>
+  </div>
+  {% endif %}
+
+  <div class="footer">
+    Generated by TrustEval &middot; github.com/aulakhs/trust-eval &middot; Last updated: {{ generated_at }}
+  </div>
+</div>
+</body>
+</html>

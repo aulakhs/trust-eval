@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Settings - TrustEval{% endblock %}
+
+{% block extra_styles %}
+  .settings-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .settings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .settings-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+  }
+  .settings-card-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+  .key-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+  .key-status.configured {
+    background: var(--green-bg);
+    color: var(--green);
+  }
+  .key-status.not-configured {
+    background: var(--bg-subtle);
+    color: var(--text-muted);
+  }
+  .key-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .key-status.configured .key-status-dot { background: var(--green); }
+  .key-status.not-configured .key-status-dot { background: var(--text-ghost); }
+
+  .settings-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .info-box {
+    background: var(--gradient-subtle);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .info-box svg {
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+{% endblock %}
+
+{% block content %}
+<div class="settings-container animate-in">
+  <div class="page-header">
+    <h1>Settings</h1>
+    <p class="page-subtitle">Manage API keys and preferences for your session</p>
+  </div>
+
+  <div class="info-box" style="margin-bottom:1.5rem;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <div>
+      <strong>Session-only storage.</strong> API keys are held in your browser session memory and are never written to disk, stored in a database, or transmitted to any third party. They are cleared when you close the browser or clear your session.
+    </div>
+  </div>
+
+  <!-- Anthropic -->
+  <div class="settings-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+      <h3>Anthropic API Key</h3>
+      <span class="key-status {% if has_anthropic %}configured{% else %}not-configured{% endif %}">
+        <span class="key-status-dot"></span>
+        {% if has_anthropic %}Configured{% else %}Not configured{% endif %}
+      </span>
+    </div>
+    <p class="settings-card-desc">Required for evaluating Claude models and for Claude-as-judge scoring.</p>
+    <div class="form-group" style="margin-bottom:0.5rem;">
+      <input type="password" class="form-input" id="anthropic-key" placeholder="sk-ant-api03-...">
+    </div>
+    <div class="settings-actions">
+      <button class="btn btn-primary" onclick="saveKey('anthropic')" style="padding:0.5rem 1.15rem; font-size:0.85rem;">Save Key</button>
+      {% if has_anthropic %}
+      <button class="btn btn-ghost" onclick="clearKey('anthropic')" style="font-size:0.85rem;">Remove</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- OpenAI -->
+  <div class="settings-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+      <h3>OpenAI API Key</h3>
+      <span class="key-status {% if has_openai %}configured{% else %}not-configured{% endif %}">
+        <span class="key-status-dot"></span>
+        {% if has_openai %}Configured{% else %}Not configured{% endif %}
+      </span>
+    </div>
+    <p class="settings-card-desc">Required only if you want to evaluate GPT models.</p>
+    <div class="form-group" style="margin-bottom:0.5rem;">
+      <input type="password" class="form-input" id="openai-key" placeholder="sk-...">
+    </div>
+    <div class="settings-actions">
+      <button class="btn btn-primary" onclick="saveKey('openai')" style="padding:0.5rem 1.15rem; font-size:0.85rem;">Save Key</button>
+      {% if has_openai %}
+      <button class="btn btn-ghost" onclick="clearKey('openai')" style="font-size:0.85rem;">Remove</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Clear All -->
+  <div class="settings-card" style="border-left: 3px solid var(--red);">
+    <h3>Clear All Keys</h3>
+    <p class="settings-card-desc">Remove all API keys from your current session.</p>
+    <button class="btn btn-danger" onclick="clearAllKeys()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Clear All Keys
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveKey(provider) {
+  const input = document.getElementById(provider + '-key');
+  const key = input.value.trim();
+  if (!key) {
+    showToast('Please enter an API key.', 'error');
+    return;
+  }
+
+  const body = {};
+  body[provider + '_api_key'] = key;
+
+  const resp = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (resp.ok) {
+    showToast(provider.charAt(0).toUpperCase() + provider.slice(1) + ' API key saved to session.');
+    input.value = '';
+    setTimeout(() => location.reload(), 1000);
+  } else {
+    showToast('Failed to save key.', 'error');
+  }
+}
+
+async function clearKey(provider) {
+  const body = {};
+  body[provider + '_api_key'] = '';
+
+  await fetch('/api/settings/clear', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  showToast('Key removed.');
+  setTimeout(() => location.reload(), 1000);
+}
+
+async function clearAllKeys() {
+  await fetch('/api/settings/clear', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  showToast('All keys cleared from session.');
+  setTimeout(() => location.reload(), 1000);
+}
+</script>
+{% endblock %}

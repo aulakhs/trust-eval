@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Running Evaluation - TrustEval{% endblock %}
+
+{% block extra_styles %}
+  .progress-container {
+    max-width: 640px;
+    margin: 4rem auto;
+    text-align: center;
+  }
+
+  .progress-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-subtle);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .progress-icon svg { width: 36px; height: 36px; color: var(--accent); }
+  .progress-icon.done {
+    background: var(--green-bg);
+    border: 2px solid var(--green-border);
+    animation: none;
+  }
+  .progress-icon.done svg { color: var(--green); }
+  .progress-icon.error {
+    background: var(--red-bg);
+    border: 2px solid var(--red-border);
+    animation: none;
+  }
+  .progress-icon.error svg { color: var(--red); }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.2); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(30, 64, 175, 0); }
+  }
+
+  .progress-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  .progress-status {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    min-height: 1.5em;
+  }
+
+  /* Progress Bar */
+  .progress-bar-container {
+    background: var(--bg-subtle);
+    border-radius: 12px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--accent-start), var(--accent-end), var(--accent-start));
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+  .progress-bar-fill.done {
+    background: linear-gradient(90deg, var(--green), var(--green-light));
+    animation: none;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .progress-pct {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .progress-steps {
+    text-align: left;
+    margin-top: 2rem;
+  }
+  .progress-step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid #f5f1ec;
+  }
+  .progress-step-item:last-child { border-bottom: none; }
+  .progress-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .progress-step-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(196, 112, 75, 0.2);
+  }
+  .progress-step-dot.done { background: var(--green); }
+
+  .result-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+{% endblock %}
+
+{% block content %}
+<div class="progress-container animate-in">
+  <div class="progress-icon" id="progress-icon">
+    <svg id="icon-running" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <svg id="icon-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+    <svg id="icon-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+  </div>
+
+  <h2 class="progress-title" id="progress-title">Running Evaluation...</h2>
+  <p class="progress-status" id="progress-status">Initializing...</p>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progress-bar"></div>
+  </div>
+  <div class="progress-pct" id="progress-pct">0%</div>
+
+  <div class="result-actions" id="result-actions" style="display:none;">
+    <a href="/" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      View Results
+    </a>
+    <a href="/new" class="btn btn-secondary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Run Another
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const jobId = '{{ job_id }}';
+let pollInterval;
+
+function pollStatus() {
+  fetch('/api/status/' + jobId)
+    .then(r => r.json())
+    .then(data => {
+      const bar = document.getElementById('progress-bar');
+      const pct = document.getElementById('progress-pct');
+      const status = document.getElementById('progress-status');
+      const title = document.getElementById('progress-title');
+      const icon = document.getElementById('progress-icon');
+
+      bar.style.width = data.progress + '%';
+      pct.textContent = data.progress + '%';
+      status.textContent = data.current_step || 'Processing...';
+
+      if (data.status === 'completed') {
+        clearInterval(pollInterval);
+        bar.style.width = '100%';
+        bar.classList.add('done');
+        pct.textContent = '100%';
+        title.textContent = 'Evaluation Complete!';
+        status.textContent = 'Your report is ready.';
+        icon.classList.add('done');
+        document.getElementById('icon-running').style.display = 'none';
+        document.getElementById('icon-done').style.display = 'block';
+        document.getElementById('result-actions').style.display = 'flex';
+      } else if (data.status === 'failed') {
+        clearInterval(pollInterval);
+        title.textContent = 'Evaluation Failed';
+        status.textContent = data.error || 'An unexpected error occurred.';
+        icon.classList.add('error');
+        document.getElementById('icon-running').style.display = 'none';
+        document.getElementById('icon-error').style.display = 'block';
+        document.getElementById('result-actions').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+
+pollInterval = setInterval(pollStatus, 1500);
+pollStatus();
+</script>
+{% endblock %}

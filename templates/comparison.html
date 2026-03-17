@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustEval: Model Comparison Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    background: #faf8f5;
+    color: #2d2d2d;
+    line-height: 1.65;
+    padding: 2.5rem 2rem;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1, h2 { font-family: 'Source Serif 4', serif; color: #1a1a1a; }
+  h1 { font-size: 1.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .subtitle { color: #7a7168; font-size: 0.92rem; margin-bottom: 2rem; }
+  .section-title { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem; }
+
+  .narrative {
+    background: linear-gradient(135deg, #fdf6f0 0%, #faf8f5 100%);
+    border: 1px solid #e5d5c8;
+    border-left: 4px solid #c4704b;
+    border-radius: 10px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+    font-size: 0.92rem;
+    color: #4a443d;
+    line-height: 1.7;
+  }
+  .narrative strong { color: #1a1a1a; }
+
+  /* Side-by-side summary */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat({{ model_count }}, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .model-card {
+    background: #fff;
+    border: 1px solid #e5dfd6;
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+  .model-card h3 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .model-card .model-sub { font-size: 0.82rem; color: #7a7168; margin-bottom: 1rem; }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #f0ece6;
+    font-size: 0.88rem;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #7a7168; }
+  .stat-value { font-weight: 600; color: #1a1a1a; }
+  .stat-value.best { color: #3d7a45; }
+
+  /* Category winners */
+  .winners-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border: 1px solid #e5dfd6;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .winners-table th {
+    background: #f5f1ec;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #7a7168;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5dfd6;
+  }
+  .winners-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid #f0ece6;
+  }
+  .winners-table tr:last-child td { border-bottom: none; }
+  .winner-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: #e4f0e5;
+    color: #2d6b35;
+  }
+
+  /* Comparison table */
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border: 1px solid #e5dfd6;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .comp-table th {
+    background: #f5f1ec;
+    padding: 0.7rem 0.75rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #7a7168;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5dfd6;
+  }
+  .comp-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f0ece6;
+    vertical-align: top;
+  }
+  .comp-table tbody tr:nth-child(even) { background: #fdfbf8; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+  .badge-pass { background: #e4f0e5; color: #2d6b35; }
+  .badge-fail { background: #f9e4df; color: #a33a2d; }
+  .score-high { color: #3d7a45; font-weight: 600; }
+  .score-mid { color: #c4704b; font-weight: 600; }
+  .score-low { color: #a83228; font-weight: 600; }
+  .q-preview { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4a443d; }
+
+  .footer { text-align: center; color: #b8b0a6; font-size: 0.78rem; margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid #e5dfd6; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>TrustEval: Model Comparison</h1>
+  <p class="subtitle">Side-by-side compliance evaluation across {{ model_count }} models &middot; Scorer: Claude (consistent judge across all models)</p>
+
+  <!-- Narrative Summary -->
+  <div class="narrative">
+    {% set ns = namespace(best_model='', best_rate=0, worst_model='', worst_rate=100) %}
+    {% for s in summaries %}
+      {% if s.pass_rate > ns.best_rate %}
+        {% set ns.best_rate = s.pass_rate %}
+        {% set ns.best_model = s.provider ~ ' ' ~ s.model %}
+      {% endif %}
+      {% if s.pass_rate < ns.worst_rate %}
+        {% set ns.worst_rate = s.pass_rate %}
+        {% set ns.worst_model = s.provider ~ ' ' ~ s.model %}
+      {% endif %}
+    {% endfor %}
+    <strong>Summary:</strong>
+    Across {{ summaries[0].total }} compliance test cases evaluated by a consistent Claude-based judge,
+    <strong>{{ ns.best_model }}</strong> achieved the highest overall pass rate at {{ ns.best_rate }}%.
+    {% if ns.best_rate != ns.worst_rate %}
+    {{ ns.worst_model }} scored {{ ns.worst_rate }}%.
+    {% endif %}
+    Both models were tested against identical scenarios covering data privacy, regulatory compliance, model safety, financial advice, and audit governance. The category breakdown below shows where each model excels and where it needs additional guardrails.
+  </div>
+
+  <!-- Side-by-side Summary Stats -->
+  <h2 class="section-title">Overall Performance</h2>
+  <div class="comparison-grid">
+    {% for s in summaries %}
+    <div class="model-card">
+      <h3>{{ s.provider }}</h3>
+      <div class="model-sub">{{ s.model }}</div>
+      <div class="stat-row"><span class="stat-label">Pass Rate</span><span class="stat-value">{{ s.pass_rate }}%</span></div>
+      <div class="stat-row"><span class="stat-label">Passed</span><span class="stat-value">{{ s.passed }}/{{ s.total }}</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Accuracy</span><span class="stat-value">{{ s.avg_accuracy }}/10</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Safety</span><span class="stat-value">{{ s.avg_safety }}/10</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Completeness</span><span class="stat-value">{{ s.avg_completeness }}/10</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Latency</span><span class="stat-value">{{ s.avg_latency }}s</span></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Winner by Category -->
+  <h2 class="section-title">Performance by Category</h2>
+  <table class="winners-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        {% for s in summaries %}
+        <th>{{ s.provider }} {{ s.model }}</th>
+        {% endfor %}
+        <th>Leader</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat, data in category_comparison.items() %}
+      <tr>
+        <td><strong>{{ data.label }}</strong></td>
+        {% set ns2 = namespace(best_score=0, best_label='') %}
+        {% for m in data.models %}
+          {% if m.avg_score > ns2.best_score %}
+            {% set ns2.best_score = m.avg_score %}
+            {% set ns2.best_label = m.label %}
+          {% endif %}
+        {% endfor %}
+        {% for m in data.models %}
+        <td>
+          {{ m.pass_rate }}% pass &middot; avg {{ m.avg_score }}/10
+        </td>
+        {% endfor %}
+        <td>
+          {% if data.models | length > 1 and data.models[0].avg_score != data.models[1].avg_score %}
+          <span class="winner-badge">{{ ns2.best_label }}</span>
+          {% else %}
+          <span style="color:#7a7168; font-size:0.82rem;">Tie</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Per-Test-Case Comparison -->
+  <h2 class="section-title">Test Case Comparison</h2>
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Category</th>
+        <th>Question</th>
+        {% for s in summaries %}
+        <th>{{ s.provider }} Result</th>
+        <th>Acc</th>
+        <th>Saf</th>
+        <th>Comp</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in comparisons %}
+      <tr>
+        <td><strong>{{ row.id }}</strong></td>
+        <td style="font-size:0.8rem;">{{ row.model_0.category | replace('_',' ') | title }}</td>
+        <td><div class="q-preview" title="{{ row.model_0.question }}">{{ row.model_0.question }}</div></td>
+        {% for i in range(model_count) %}
+          {% set m = row['model_' ~ i|string] %}
+          <td>{% if m.pass %}<span class="badge badge-pass">PASS</span>{% else %}<span class="badge badge-fail">FAIL</span>{% endif %}</td>
+          <td><span class="{% if m.accuracy >= 7 %}score-high{% elif m.accuracy >= 5 %}score-mid{% else %}score-low{% endif %}">{{ m.accuracy }}</span></td>
+          <td><span class="{% if m.safety >= 7 %}score-high{% elif m.safety >= 5 %}score-mid{% else %}score-low{% endif %}">{{ m.safety }}</span></td>
+          <td><span class="{% if m.completeness >= 7 %}score-high{% elif m.completeness >= 5 %}score-mid{% else %}score-low{% endif %}">{{ m.completeness }}</span></td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Generated by TrustEval &middot; github.com/aulakhs/trust-eval
+  </div>
+</div>
+</body>
+</html>
